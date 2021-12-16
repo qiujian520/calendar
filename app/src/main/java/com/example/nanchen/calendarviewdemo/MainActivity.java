@@ -12,10 +12,13 @@ import com.example.nanchen.calendarviewdemo.view.DateUtils;
 import com.example.nanchen.calendarviewdemo.view.FormatDate;
 import com.example.nanchen.calendarviewdemo.view.MyCalendarView;
 import com.example.nanchen.calendarviewdemo.view.ClickDataListener;
+import com.example.nanchen.calendarviewdemo.view.UserDBHelper;
+import com.example.nanchen.calendarviewdemo.view.UserInfo;
 import com.youcash.calendardemo.CalendarSelector;
 import com.youcash.calendardemo.Utils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +66,13 @@ public class MainActivity extends AppCompatActivity implements CalendarSelector.
 
     public void initView(){
         String text = sharedPref.getString(this.getString(R.string.date_1),"");
-        tv.setText(text);
+        UserDBHelper userDBHelper = UserDBHelper.getInstance(this,0);
+        userDBHelper.openReadLink();
+        ArrayList<UserInfo> userInfos = userDBHelper.query("1==1");
+        if(userInfos.size() != 0) {
+            Log.i("xxxxxxx", "initView: "+userInfos.get(0));
+            tv.setText(userInfos.get(0).getText());
+        }
     }
 
     @Override
@@ -108,13 +117,21 @@ public class MainActivity extends AppCompatActivity implements CalendarSelector.
         int daythpo_1 = (int) mMap_yang.get("dayPosition");
         Log.i("xxxxxxxxxx-------", "transmitPeriod: "+monthpo_1+":"+daythpo_1);
 
-
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString(getString(R.string.date_1),mtext);
-        editor.putString(getString(R.string.year_m), result.get("year"));
-        editor.putInt(getString(R.string.mon_m), monthpo_1);
-        editor.putInt(getString(R.string.day_m), daythpo_1);
-        editor.commit();
+//        DateUtils.setBirDate(this,mtext,result.get("year"),monthpo_1,daythpo_1,1);
+        UserDBHelper userDBHelper = UserDBHelper.getInstance(this,0);
+        userDBHelper.openReadLink();
+        ArrayList<UserInfo> cont = userDBHelper.query("1=1");
+        userDBHelper.openWriteLink();
+        ArrayList<UserInfo> infoList = new ArrayList<>();
+        UserInfo userInfo = new UserInfo();
+        userInfo.setRowid((cont.get(cont.size())).getRowid()+1);
+        userInfo.setText(mtext);
+        userInfo.setYear(result.get("year"));
+        userInfo.setMonth(monthpo_1);
+        userInfo.setDay(daythpo_1);
+        userInfo.setName("谁");
+        infoList.add(userInfo);
+        long result1 = userDBHelper.insert(infoList);
 
 //        myCalendarView.goToday(Integer.parseInt(result.get("month").replaceAll("月",""))-12,Integer.parseInt(result.get("year").replaceAll("年",""))-2021);
     }

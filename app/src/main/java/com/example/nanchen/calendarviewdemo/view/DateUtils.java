@@ -1,7 +1,10 @@
 package com.example.nanchen.calendarviewdemo.view;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.example.nanchen.calendarviewdemo.R;
 import com.youcash.calendardemo.Utils;
 
 import java.text.SimpleDateFormat;
@@ -124,7 +127,16 @@ public class DateUtils {
         return daycont;
     }
 
-
+    public static void  setBirDate(Context context,String mtext,String year,int monthpo_1,int daythpo_1,int number){
+        SharedPreferences sharedPref;
+        sharedPref = context.getSharedPreferences("qiujian",context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(context.getString(R.string.date_1)+number,mtext);
+        editor.putString(context.getString(R.string.year_m)+number, year);
+        editor.putInt(context.getString(R.string.mon_m)+number, monthpo_1);
+        editor.putInt(context.getString(R.string.day_m)+number, daythpo_1);
+        editor.commit();
+    }
 
 
     
