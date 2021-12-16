@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/CalendarViewDemo.iml" filepath="$PROJECT_DIR$/.idea/modules/CalendarViewDemo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/CalendarViewDemo.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/CalendarViewDemo.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/my)library/CalendarViewDemo.my_library.iml" filepath="$PROJECT_DIR$/.idea/modules/my)library/CalendarViewDemo.my_library.iml" />
+    </modules>
+  </component>
+</project>

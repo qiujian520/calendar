@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">CalendarViewDemo</string>
+    <string name="date_1">date_1</string>
+    <string name="year_m">bir_year</string>
+    <string name="mon_m">bir_mon</string>
+    <string name="day_m">bir_day</string>
+</resources>
