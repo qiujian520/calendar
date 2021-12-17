@@ -1,10 +1,16 @@
 package com.example.nanchen.calendarviewdemo;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,21 +29,26 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 /**
  * @author nanchen
  * @date 2016-08-11 10:48:21
  */
-public class MainActivity extends AppCompatActivity implements CalendarSelector.ICalendarSelectorCallBack {
+public class MainActivity extends Activity implements CalendarSelector.ICalendarSelectorCallBack {
     private TextView tv;
     private CalendarSelector mCalendarSelector;
     private MyCalendarView myCalendarView;
     SharedPreferences sharedPref;
+    RelativeLayout layout;
+    String mname = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        sharedPref = this.getSharedPreferences("qiujian",this.MODE_PRIVATE);
+        layout = (RelativeLayout) findViewById(R.id.layout);
+        sharedPref = this.getSharedPreferences("qiujian", this.MODE_PRIVATE);
         myCalendarView = (MyCalendarView) findViewById(R.id.main_calendar);
         myCalendarView.setClickDataListener(new ClickDataListener() {
             @Override
@@ -54,25 +65,105 @@ public class MainActivity extends AppCompatActivity implements CalendarSelector.
         int year_c = Integer.parseInt(nowDate.split("-")[0]);
         int month_c = Integer.parseInt(nowDate.split("-")[1]);
         int day_c = Integer.parseInt(nowDate.split("-")[2]);
-        mCalendarSelector = new CalendarSelector(this, year_c-1901,month_c,day_c, this);
+        mCalendarSelector = new CalendarSelector(this, year_c - 1901, month_c, day_c, this);
         findViewById(R.id.btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mCalendarSelector.show(tv);
+                amend();
+            }
+        });
+        findViewById(R.id.btn_clear).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                UserDBHelper userDBHelper = UserDBHelper.getInstance(MainActivity.this, 0);
+                userDBHelper.openReadLink();
+                userDBHelper.deleteAll();
+                while (layout.getChildCount()>0) {
+                    layout.removeViewAt(layout.getChildCount() - 1);
+                }
+                initView();
             }
         });
         initView();
     }
 
-    public void initView(){
-        String text = sharedPref.getString(this.getString(R.string.date_1),"");
-        UserDBHelper userDBHelper = UserDBHelper.getInstance(this,0);
+    public void amend() {
+        LayoutInflater factory = LayoutInflater.from(MainActivity.this);
+        View textEntryView = factory.inflate(R.layout.myedit_amend, null);
+        final EditText mname_edit = (EditText) textEntryView
+                .findViewById(R.id.rename_edit);
+        AlertDialog.Builder dialog = null;
+        dialog = new AlertDialog.Builder(MainActivity.this);
+        dialog.setTitle("请添加名字");
+        dialog.setMessage("添加名字之后可以选择日期");
+        dialog.setCancelable(true);
+        dialog.setView(textEntryView);
+        dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (mname_edit.getText() != null) {
+                    MainActivity.this.mname = String.valueOf(mname_edit.getText());
+
+                    mCalendarSelector.show(tv);
+                }
+            }
+        });
+
+        dialog.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+            }
+        });
+        dialog.show();
+
+
+    }
+
+
+    public void initView() {
+        String text = sharedPref.getString(this.getString(R.string.date_1), "");
+        UserDBHelper userDBHelper = UserDBHelper.getInstance(this, 0);
         userDBHelper.openReadLink();
-        ArrayList<UserInfo> userInfos = userDBHelper.query("1==1");
-        if(userInfos.size() != 0) {
-            Log.i("xxxxxxx", "initView: "+userInfos.get(0));
-            tv.setText(userInfos.get(0).getText());
+        ArrayList<UserInfo> userInfos = userDBHelper.queryAll();
+        Log.i("-----------------", "initView: " + userInfos.size());
+        if (userInfos.size() != 0) {
+            Random rnd = new Random();
+            int prevTextViewId = 0;
+
+            for (int i = 0; i < userInfos.size(); i++) {
+
+                final TextView textView = new TextView(this);
+
+                textView.setText(userInfos.get(i).getName() + userInfos.get(i).getText());
+
+                textView.setTextColor(rnd.nextInt() | 0xff000000);
+
+                int curTextViewId = prevTextViewId + 1;
+
+                textView.setId(curTextViewId);
+
+                final RelativeLayout.LayoutParams params =
+
+                        new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.FILL_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+
+                params.addRule(RelativeLayout.BELOW, prevTextViewId);
+
+                textView.setLayoutParams(params);
+
+                prevTextViewId = curTextViewId;
+                textView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                    }
+                });
+                layout.addView(textView, params);
+
+            }
+            Log.i("xxxxxxx", "initView: " + userInfos.get(0));
+//            tv.setText(userInfos.get(0).getText());
         }
+
     }
 
     @Override
@@ -84,26 +175,26 @@ public class MainActivity extends AppCompatActivity implements CalendarSelector.
         int lu_d = 0;
         HashMap<String, Object> mMap;
 
-        for(int i=0;i<=12;i++){
-            if((i+"月").equals(ar_m)){
-                lu_m = i-1;
+        for (int i = 0; i <= 12; i++) {
+            if ((i + "月").equals(ar_m)) {
+                lu_m = i - 1;
             }
         }
-        for (int i = 0;i<=31;i++){
-            if((i+"日").equals(ar_d)){
-                lu_d = i-1;
+        for (int i = 0; i <= 31; i++) {
+            if ((i + "日").equals(ar_d)) {
+                lu_d = i - 1;
             }
         }
-        Log.i("xxxxxx", "transmitPeriod: "+lu_m+":"+lu_d);
+        Log.i("xxxxxx", "transmitPeriod: " + lu_m + ":" + lu_d);
 
         //转换为阴历
-        mMap = Utils.average2Lunar(result.get("year"),lu_m,lu_d);
+        mMap = Utils.average2Lunar(result.get("year"), lu_m, lu_d);
         int monthpo = (int) mMap.get("monthPosition");
         int daythpo = (int) mMap.get("dayPosition");
         String mmonth = ((List<String>) mMap.get("month")).get(monthpo);
         String mday = ((List<List<String>>) mMap.get("day")).get(monthpo).get(daythpo);
-        Log.i("xxxxxxx", "transmitPeriod: "+mmonth+":"+mday);
-        String mtext = result.get("year") + "" + result.get("month") + "" + result.get("day")+":"+mmonth+"-"+mday+"----还有："+DateUtils.getdate(mmonth,mday)+"天生日";
+        Log.i("xxxxxxx", "transmitPeriod: " + mmonth + ":" + mday);
+        String mtext = result.get("year") + "" + result.get("month") + "" + result.get("day") + ":" + mmonth + "-" + mday + "----还有：" + DateUtils.getdate(mmonth, mday) + "天生日";
         tv.setText(mtext);
 
         //今年的阳历
@@ -112,27 +203,33 @@ public class MainActivity extends AppCompatActivity implements CalendarSelector.
         SimpleDateFormat sdf = new SimpleDateFormat(FormatDate.DATE_FORMAT, Locale.CHINA);
         String nowDate = sdf.format(date);
         int year_c = Integer.parseInt(nowDate.split("-")[0]);
-        mMap_yang = Utils.lunar2Average(year_c+"年",monthpo,daythpo);
+        mMap_yang = Utils.lunar2Average(year_c + "年", monthpo, daythpo);
         int monthpo_1 = (int) mMap_yang.get("monthPosition");
         int daythpo_1 = (int) mMap_yang.get("dayPosition");
-        Log.i("xxxxxxxxxx-------", "transmitPeriod: "+monthpo_1+":"+daythpo_1);
+        Log.i("xxxxxxxxxx-------", "transmitPeriod: " + monthpo_1 + ":" + daythpo_1);
 
 //        DateUtils.setBirDate(this,mtext,result.get("year"),monthpo_1,daythpo_1,1);
-        UserDBHelper userDBHelper = UserDBHelper.getInstance(this,0);
+        UserDBHelper userDBHelper = UserDBHelper.getInstance(this, 0);
         userDBHelper.openReadLink();
-        ArrayList<UserInfo> cont = userDBHelper.query("1=1");
+        ArrayList<UserInfo> cont = userDBHelper.queryAll();
         userDBHelper.openWriteLink();
         ArrayList<UserInfo> infoList = new ArrayList<>();
         UserInfo userInfo = new UserInfo();
-        userInfo.setRowid((cont.get(cont.size())).getRowid()+1);
+        if(cont.size() >0) {
+            Log.i("-------------", "transmitPeriod: " + ((cont.get(cont.size() - 1)).getRowid() + 1) + ":" + cont.size());
+            userInfo.setRowid((cont.get(cont.size() - 1)).getRowid() + 1);
+        }else {
+            userInfo.setRowid(0);
+
+        }
         userInfo.setText(mtext);
         userInfo.setYear(result.get("year"));
         userInfo.setMonth(monthpo_1);
         userInfo.setDay(daythpo_1);
-        userInfo.setName("谁");
+        userInfo.setName(mname);
         infoList.add(userInfo);
         long result1 = userDBHelper.insert(infoList);
-
-//        myCalendarView.goToday(Integer.parseInt(result.get("month").replaceAll("月",""))-12,Integer.parseInt(result.get("year").replaceAll("年",""))-2021);
+        myCalendarView.initView();
+        initView();
     }
 }

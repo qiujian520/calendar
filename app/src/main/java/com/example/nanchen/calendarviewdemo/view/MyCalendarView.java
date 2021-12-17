@@ -72,7 +72,7 @@ public class MyCalendarView extends LinearLayout implements OnClickListener {
 	/**
 	 * 初始化布局
 	 */
-	private void initView() {
+	public void initView() {
 		//加载布局，一个头布局，一个横向的星期布局，下面一个ViewFlipper用于滑动
 		View view = View.inflate(mContext, R.layout.calen_calendar, this);
 		currentMonth = (TextView) view.findViewById(R.id.currentMonth);

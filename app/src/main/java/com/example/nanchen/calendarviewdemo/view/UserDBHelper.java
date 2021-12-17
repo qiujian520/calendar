@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -177,6 +178,30 @@ public class UserDBHelper extends SQLiteOpenHelper {
                 info.setMonth(cursor.getInt(3));
                 info.setDay(cursor.getInt(4));
                 info.setName(cursor.getString(5));
+                infoArray.add(info);
+                if (cursor.isLast() == true) {
+                    break;
+                }
+            }
+        }
+        cursor.close();
+        return infoArray;
+    }
+
+    public ArrayList<UserInfo> queryAll() {
+        String sql = String.format("select * from %s;", TABLE_NAME);
+        ArrayList<UserInfo> infoArray = new ArrayList<>();
+        Cursor cursor = mDB.rawQuery(sql, null);
+        if (cursor.moveToNext()) {
+            for (; ; cursor.moveToNext()) {
+                UserInfo info = new UserInfo();
+                info.setRowid(cursor.getInt(0));
+                info.setText(cursor.getString(1));
+                info.setYear(cursor.getString(2));
+                info.setMonth(cursor.getInt(3));
+                info.setDay(cursor.getInt(4));
+                info.setName(cursor.getString(5));
+                Log.i(TAG, "queryAll: "+info);
                 infoArray.add(info);
                 if (cursor.isLast() == true) {
                     break;

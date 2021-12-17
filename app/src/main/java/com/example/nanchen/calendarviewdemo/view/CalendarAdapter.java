@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.example.nanchen.calendarviewdemo.R;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -56,6 +57,8 @@ public class CalendarAdapter extends BaseAdapter {
 	private int colorDataPosition = -1;
 	private int colorDataPosition_bir = -1;
 	SharedPreferences sharedPref;
+	ArrayList  mposition = new ArrayList();
+
 
 	private boolean isClickData = false;
 
@@ -177,11 +180,20 @@ public class CalendarAdapter extends BaseAdapter {
 		} else {
 			textView.setBackgroundColor(res.getColor(android.R.color.transparent));
 		}
-		if (colorDataPosition_bir == position) {
-			// 设置当天的背景
-			textView.setTextColor(Color.WHITE);
-
-			textView.setBackgroundResource(R.drawable.bg_circle);
+//		if (colorDataPosition_bir == position) {
+//			// 设置当天的背景
+//			textView.setTextColor(Color.WHITE);
+//
+//			textView.setBackgroundResource(R.drawable.bg_circle);
+//		}
+		Log.i("---", "getView: "+mposition);
+		if(mposition.size()>0){
+			for(int i=0;i<mposition.size();i++){
+				if (position == (int) mposition.get(i)) {
+					textView.setTextColor(Color.WHITE);
+					textView.setBackgroundResource(R.drawable.bg_circle);
+				}
+			}
 		}
 		return convertView;
 	}
@@ -199,6 +211,10 @@ public class CalendarAdapter extends BaseAdapter {
 	private void getweek(int year, int month) {
 		int j = 1;
 		String lunarDay = "";
+		UserDBHelper userDBHelper = UserDBHelper.getInstance(context, 0);
+		userDBHelper.openReadLink();
+		ArrayList<UserInfo> userInfos = userDBHelper.queryAll();
+		mposition.clear();
 		// 得到当前月的所有日程日期(这些日期需要标记)
 		for (int i = 0; i < dayNumber.length; i++) {
 			if (i < dayOfWeek) { // 前一个月
@@ -216,20 +232,32 @@ public class CalendarAdapter extends BaseAdapter {
 						&& sys_month.equals(String.valueOf(month))
 						&& sys_day.equals(day)) {
 					// 标记当前日期
-					Log.i("xxxxx", "getweek: "+sys_month+":"+sys_day+":"+month+":"+day);
 					colorDataPosition = i;
 				}
-				String m_a;
-				int m_b;
-				int m_c;
-				m_a = sharedPref.getString(context.getString(R.string.year_m),"");
-				m_b = sharedPref.getInt(context.getString(R.string.mon_m),0);
-				m_c = sharedPref.getInt(context.getString(R.string.day_m),0);
-				if ((m_b+1)==month && (m_c+1+"").equals(day)) {
-					// 标记当前日期
-					Log.i("xxxxxxxx", "getweek: "+month+":"+day);
-					colorDataPosition_bir = i;
+				Log.i("xxxxx", "getweek: "+userInfos.size());
+
+				if(userInfos.size()>0){
+					for(int k=0;k<userInfos.size();k++){
+						Log.i("xxxxxxxx", "getweek: "+(userInfos.get(k).getMonth())+":"+userInfos.get(k).getDay()+"---"+month+":"+day);
+
+						if ((userInfos.get(k).getMonth()+1)==month && (userInfos.get(k).getDay()+1+"").equals(day)) {
+							// 标记当前日期
+							Log.i("xxxxxxxx", "getweek: "+month+":"+day);
+							mposition.add(i);
+						}
+					}
 				}
+//				String m_a;
+//				int m_b;
+//				int m_c;
+//				m_a = sharedPref.getString(context.getString(R.string.year_m),"");
+//				m_b = sharedPref.getInt(context.getString(R.string.mon_m),0);
+//				m_c = sharedPref.getInt(context.getString(R.string.day_m),0);
+//				if ((m_b+1)==month && (m_c+1+"").equals(day)) {
+//					// 标记当前日期
+//					Log.i("xxxxxxxx", "getweek: "+month+":"+day);
+//					colorDataPosition_bir = i;
+//				}
 
 
 				setShowYear(String.valueOf(year));
